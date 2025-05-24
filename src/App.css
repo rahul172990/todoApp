@@ -25,7 +25,8 @@ body {
 }
 
 .app {
-  width: 600px;
+  /* width: 100%; */
+  width: 800px;
   margin: 0 auto;
   padding: 20px;
 }
@@ -302,4 +303,10 @@ body {
   height: 3px;
   background-color: var(--primary-color);
   border-radius: 3px 3px 0 0;
+}
+
+@media (max-width: 600px) {
+  .app {
+    width: 100%;
+  }
 }
