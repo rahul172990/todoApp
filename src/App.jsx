@@ -1,97 +1,75 @@
 import { useState, useEffect } from "react";
-import TodoList from "./components/TodoList";
-import TodoForm from "./components/TodoForm";
-import ArchiveList from "./components/ArchiveList";
-import Navbar from "./components/Navbar";
-
 import "./App.css";
 
 const App = () => {
-  const [todos, setTodos] = useState(() => {
-    const savedTodos = localStorage.getItem("todos");
-    return savedTodos ? JSON.parse(savedTodos) : [];
-  });
+  const [todos, setTodos] = useState(null);
+  const [todoToAdd, setTodoToAdd] = useState("");
 
-  const [archives, setArchives] = useState(() => {
-    const savedArchives = localStorage.getItem("archives");
-    return savedArchives ? JSON.parse(savedArchives) : [];
-  });
-
-  const [activeTab, setActiveTab] = useState("todos");
-
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
-
-  useEffect(() => {
-    localStorage.setItem("archives", JSON.stringify(archives));
-  }, [archives]);
-
-  const addTodo = (todo) => {
-    setTodos([...todos, todo]);
+  const fetchTodos = async () => {
+    const todosData = await fetch("https://jsonplaceholder.typicode.com/todos");
+    const todoData = await todosData?.json();
+    setTodos(todoData);
   };
 
-  const editTodo = (id, updatedTodo) => {
-    setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
+  const addToDo = () => {
+    const newToDoList = [
+      ...todos,
+      { completed: false, id: todos?.length + 1, title: todoToAdd, userId: 1 },
+    ];
+    setTodos(newToDoList);
   };
 
   const deleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+    const todoList = todos?.filter((todo, idx) => todo?.id !== id);
+    setTodos(todoList);
   };
 
-  const toggleComplete = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
+  useEffect(() => {
+    fetchTodos();
+  }, []);
 
-  const toggleImportant = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, important: !todo.important } : todo
-      )
-    );
-  };
-
-  const archiveTodo = (id) => {
-    const todoToArchive = todos.find((todo) => todo.id === id);
-    if (todoToArchive) {
-      setArchives([...archives, todoToArchive]);
-      deleteTodo(id);
-    }
-  };
-
-  const deleteArchive = (id) => {
-    setArchives(archives.filter((todo) => todo.id !== id));
-  };
+  console.log("todos ", todos);
 
   return (
-    <div className="app">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="container">
-        <h1 className="app-title">Todo App</h1>
+    <>
+      <input
+        type="text"
+        value={todoToAdd}
+        onChange={(e) => setTodoToAdd(e?.target?.value)}
+      />
+      <button onClick={addToDo}>Submit</button>
 
-        {activeTab === "todos" && (
-          <>
-            <TodoForm addTodo={addTodo} />
-            <TodoList
-              todos={todos}
-              editTodo={editTodo}
-              deleteTodo={deleteTodo}
-              toggleComplete={toggleComplete}
-              toggleImportant={toggleImportant}
-              archiveTodo={archiveTodo}
-            />
-          </>
-        )}
-
-        {activeTab === "archives" && (
-          <ArchiveList archives={archives} deleteArchive={deleteArchive} />
-        )}
-      </div>
-    </div>
+      <div>Todo Task</div>
+      {todos?.map((todo, idx) => {
+        return (
+          <div key={todo?.id} style={{ display: "flex", margin: 10 }}>
+            <span
+              style={{
+                marginRight: 10,
+              }}
+            >
+              {idx + 1}
+            </span>
+            <span>{todo?.title}</span>
+            <button
+              style={{
+                // padding: 5,
+                width: 20,
+                height: 15,
+                margin: 3,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                marginLeft: 5,
+              }}
+              onClick={() => deleteTodo(todo?.id)}
+            >
+              x
+            </button>
+          </div>
+        );
+      })}
+    </>
   );
 };
 
